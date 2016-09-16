@@ -44,7 +44,11 @@ Uint32 channel_len[SFX_CHANNELS] = { 0 };
 Uint8 channel_vol[SFX_CHANNELS];
 
 int sound_init_state = false;
+#ifdef VITA
+int freq = 48000;
+#else
 int freq = 11025 * OUTPUT_QUALITY;
+#endif
 
 static SDL_AudioCVT audio_cvt; // used for format conversion
 

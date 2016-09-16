@@ -26,7 +26,7 @@
 
 #define SFX_CHANNELS 8
 
-#if defined(TARGET_GP2X) || defined(TARGET_DINGUX)
+#if defined(TARGET_GP2X) || defined(TARGET_DINGUX) 
 #define OUTPUT_QUALITY 2  // 22 kHz
 #else
 #define OUTPUT_QUALITY 4  // 44 kHz

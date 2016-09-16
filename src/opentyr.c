@@ -54,6 +54,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef VITA
+#include <psp2/kernel/processmgr.h>
+#endif
+
 const char *opentyrian_str = "OpenTyrian",
            *opentyrian_version = HG_REV;
 
@@ -318,6 +322,12 @@ void opentyrian_menu( void )
 int main( int argc, char *argv[] )
 {
 	mt_srand(time(NULL));
+	
+#ifdef VITA
+#ifdef VDEBUG
+	psp2shell_init(3333);
+#endif
+#endif
 
 	printf("\nWelcome to... >> %s %s <<\n\n", opentyrian_str, opentyrian_version);
 
@@ -431,7 +441,15 @@ int main( int argc, char *argv[] )
 	}
 
 	JE_tyrianHalt(0);
+	
+#ifdef VITA
+#ifdef VDEBUG
+	psp2shell_exit();
+#endif
+	sceKernelExitProcess(0);
+#endif
 
 	return 0;
 }
+
 

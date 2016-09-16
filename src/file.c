@@ -30,6 +30,9 @@ const char *custom_data_dir = ".";
 // finds the Tyrian data directory
 const char *data_dir( void )
 {
+#ifdef VITA
+	return "app0:data/";
+#else
 	const char *dirs[] =
 	{
 		custom_data_dir,
@@ -61,6 +64,7 @@ const char *data_dir( void )
 		dir = "";
 	
 	return dir;
+#endif
 }
 
 // prepend directory and fopen

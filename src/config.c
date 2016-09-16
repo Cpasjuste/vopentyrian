@@ -37,6 +37,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef VITA
+#include <psp2/io/stat.h>
+#endif
+
 /* Configuration Load/Save handler */
 
 const JE_byte cryptKey[10] = /* [1..10] */
@@ -276,7 +280,11 @@ bool save_opentyrian_config( void )
 	
 	// The user directory is '.' on WIN32 and doesn't need to be created.
 #ifndef TARGET_WIN32
+#ifdef VITA
+	sceIoMkdir(get_user_directory(), 0777);
+#else
 	mkdir(get_user_directory(), 0700);
+#endif
 #endif
 	
 	FILE *file = dir_fopen(get_user_directory(), "opentyrian.cfg", "w");
@@ -690,6 +698,9 @@ void JE_decryptSaveTemp( void )
 #ifndef TARGET_MACOSX
 const char *get_user_directory( void )
 {
+#ifdef VITA
+	return "ux0:data/vopentyrian/";
+#else
 	static char user_dir[500] = "";
 	
 	if (strlen(user_dir) == 0)
@@ -718,6 +729,7 @@ const char *get_user_directory( void )
 	}
 	
 	return user_dir;
+#endif
 }
 #endif // TARGET_MACOSX
 
@@ -965,7 +977,11 @@ void JE_saveConfiguration( void )
 	
 	// The user directory is '.' on WIN32 and doesn't need to be created.
 #ifndef TARGET_WIN32
+#ifdef VITA
+	sceIoMkdir(get_user_directory(), 0777);
+#else
 	mkdir(get_user_directory(), 0700);
+#endif
 #endif
 	
 	f = dir_fopen_warn(get_user_directory(), "tyrian.sav", "wb");

@@ -1,72 +1,72 @@
-# BUILD SETTINGS ###########################################
+PHONY := all package clean
 
-ifneq ($(filter Msys Cygwin, $(shell uname -o)), )
-    PLATFORM := WIN32
-else
-    PLATFORM := UNIX
-endif
+DATE := $(shell date +%y-%m-%d)
 
-TARGET := opentyrian
-WITH_NETWORK := false
+CC := arm-vita-eabi-gcc
+CXX := arm-vita-eabi-g++
+STRIP := arm-vita-eabi-strip
 
-############################################################
+PROJECT_TITLE := vOpenTiryan
+PROJECT_TITLEID := VOPTIRYAN
+PROJECT := vOpenTiryan
 
-STRIP := strip
-SDL_CONFIG := sdl2-config
+LIBS = -lpsp2shell -lpthread -lSDL2 -lvita2d -lSceDisplay_stub -lSceGxm_stub \
+		-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub -lSceNetCtl_stub \
+		-lSceNet_stub -lScePower_stub -lSceKernel_stub -lSceCommonDialog_stub \
+		-lSceAudio_stub -lSceAppMgr_stub -lpng -lz -lm -lc
 
-SRCS := $(wildcard src/*.c)
-OBJS := $(SRCS:src/%.c=obj/%.o)
 
-# FLAGS ####################################################
+CFLAGS  = -Wl,-q -Wall -O3 -MMD -pedantic -Wall -Wextra \
+			-Wno-missing-field-initializers -Wno-unused-parameter \
+			-ftree-vectorize -mword-relocations -fomit-frame-pointer -ffast-math \
+			-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard \
+			-DVITA -DTARGET_UNIX -std=c99 -I./src -I$(VITASDK)/arm-vita-eabi/include
+#-DVDEBUG 
 
-ifneq ($(MAKECMDGOALS), release)
-    EXTRA_CFLAGS += -g3 -O0 -Werror
-else
-    EXTRA_CFLAGS += -g0 -O2 -DNDEBUG
-endif
-EXTRA_CFLAGS += -MMD -pedantic -Wall -Wextra -Wno-missing-field-initializers
-ifeq ($(WITH_NETWORK), true)
-    EXTRA_CFLAGS += -DWITH_NETWORK
-endif
+OBJS := src/mainint.o src/arg_parse.o src/backgrnd.o src/destruct.o src/fonthand.o \
+	src/sizebuf.o src/musmast.o src/loudness.o src/shots.o src/joystick.o src/game_menu.o \
+	src/pcxload.o src/pcxmast.o src/video_scale.o src/lvlmast.o src/player.o src/keyboard.o \
+	src/picload.o src/opl.o src/nortvars.o src/episodes.o src/animlib.o src/video_vita.o src/sndmast.o \
+	src/params.o src/scroller.o src/font.o src/vga_palette.o src/sprite.o src/file.o src/lvllib.o \
+	src/config.o src/helptext.o src/network.o src/xmas.o src/starlib.o src/opentyr.o src/editship.o \
+	src/jukebox.o src/setup.o src/std_support.o src/mouse.o src/video_scale_hqNx.o src/nortsong.o \
+	src/mtrand.o src/config_file.o src/lds_play.o src/menus.o src/vga256d.o src/tyrian2.o src/palette.o \
+	src/varz.o
 
-HG_REV := $(shell hg id -ib && touch src/hg_revision.h)
-ifneq ($(HG_REV), )
-    EXTRA_CFLAGS += '-DHG_REV="$(HG_REV)"'
-endif
+all: package
 
-EXTRA_LDLIBS += -lm
+package: $(PROJECT).vpk
 
-SDL_CFLAGS := $(shell $(SDL_CONFIG) --cflags)
-SDL_LDLIBS := $(shell $(SDL_CONFIG) --libs)
-ifeq ($(WITH_NETWORK), true)
-    SDL_LDLIBS += -lSDL_net
-endif
+$(PROJECT).vpk: eboot.bin param.sfo
+	rm -rf vpk && mkdir -p vpk/sce_sys/livearea/contents
+	cp eboot.bin vpk/
+	cp param.sfo vpk/sce_sys/
+	cp vita/icon0.png vpk/sce_sys/
+	cp vita/template.xml vpk/sce_sys/livearea/contents/
+	cp vita/bg.png vpk/sce_sys/livearea/contents/
+	cp vita/startup.png vpk/sce_sys/livearea/contents/
+	cp -r data vpk/data
+	cd vpk && zip -r ../$(PROJECT)-$(DATE).vpk . && cd ..
+	
+eboot.bin: $(PROJECT).velf
+	vita-make-fself -s $(PROJECT).velf eboot.bin
 
-ALL_CFLAGS += -std=c99 -I./src -DTARGET_$(PLATFORM) $(EXTRA_CFLAGS) $(SDL_CFLAGS) $(CFLAGS)
-ALL_LDFLAGS += $(LDFLAGS)
-LDLIBS += $(EXTRA_LDLIBS) $(SDL_LDLIBS)
+param.sfo:
+	vita-mksfoex -s TITLE_ID="$(PROJECT_TITLEID)" "$(PROJECT_TITLE)" param.sfo
 
-# RULES ####################################################
+$(PROJECT).velf: $(PROJECT).elf
+	$(STRIP) -g $<
+	vita-elf-create $< $@
 
-.PHONY : all release clean
+$(PROJECT).elf: $(OBJS)
+	$(CC) -Wl,-q -o $@ $^ $(LIBS)
 
-all : $(TARGET)
+$(OBJ_DIRS):
+	mkdir -p $@
 
-release : all
-	$(STRIP) $(TARGET)
+out/%.o : src/%.c | $(OBJ_DIRS)
+	$(CC) -c $(CFLAGS) -o $@ $<
 
-clean :
-	rm -rf obj/*
-	rm -f $(TARGET)
-
-ifneq ($(MAKECMDGOALS), clean)
-    -include $(OBJS:.o=.d)
-endif
-
-$(TARGET) : $(OBJS)
-	$(CC) -o $@ $(ALL_LDFLAGS) $^ $(LDLIBS)
-
-obj/%.o : src/%.c
-	@mkdir -p "$(dir $@)"
-	$(CC) -c -o $@ $(ALL_CFLAGS) $<
-
+clean:
+	rm -f $(PROJECT).velf $(PROJECT).elf $(PROJECT).vpk param.sfo eboot.bin $(OBJS)
+	rm -rf vpk

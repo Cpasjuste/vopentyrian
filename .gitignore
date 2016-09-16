@@ -35,3 +35,14 @@ visualc/*.db
 visualc/*.opendb
 visualc/*32/*
 visualc/*64/*
+
+*.d
+*.o
+
+*.bin
+*.sfo
+psp2shell_cli
+*.vpk
+*.elf
+*.velf
+vpk/
