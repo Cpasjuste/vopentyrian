@@ -25,14 +25,6 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#ifdef VITA
-#ifdef VDEBUG
-#include <psp2shell.h>
-#define printf psp2shell_print
-#endif
-#endif
-
-
 #define SAVE_FILES_NUM (11 * 2)
 
 /* These are necessary because the size of the structure has changed from the original, but we

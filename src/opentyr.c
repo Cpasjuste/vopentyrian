@@ -326,6 +326,7 @@ int main( int argc, char *argv[] )
 #ifdef VITA
 #ifdef VDEBUG
 	psp2shell_init(3333);
+	sceKernelDelayThread(1000*1000*5);
 #endif
 #endif
 

@@ -53,6 +53,10 @@
 #include <ctype.h>
 #include <string.h>
 
+#ifdef VITA
+#include "keyboard_vita.h"
+#endif
+
 bool button[4];
 
 #define MAX_PAGE 8
@@ -1524,7 +1528,14 @@ void JE_highScoreCheck( void )
 				temp = 0;
 
 				JE_barShade(VGAScreen, 65, 55, 255, 155);
-
+#ifdef VITA
+				char *str = keyboard_vita_get("Enter your name", 29);
+				if(str != NULL) {
+					strcpy(stemp, str);
+				} else {
+					cancel = true;
+				}
+#else
 				do
 				{
 					service_SDL_events(true);
@@ -1654,6 +1665,7 @@ void JE_highScoreCheck( void )
 					}
 				}
 				while (!quit);
+#endif
 
 				if (!cancel)
 				{
@@ -2376,6 +2388,15 @@ void JE_operation( JE_byte slot )
 
 		JE_barShade(VGAScreen, 65, 55, 255, 155);
 
+#ifdef VITA
+		char *str = keyboard_vita_get("Enter a name", 20);
+		if(str != NULL) {
+			JE_saveGame(slot, str);
+			JE_playSampleNum(S_SELECT);
+		} else {
+			JE_playSampleNum(S_SPRING);
+		}
+#else
 		bool quit = false;
 		while (!quit)
 		{
@@ -2489,6 +2510,7 @@ void JE_operation( JE_byte slot )
 
 			}
 		}
+#endif
 	}
 
 	wait_noinput(false, true, false);

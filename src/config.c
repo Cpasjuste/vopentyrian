@@ -226,8 +226,11 @@ bool load_opentyrian_config( void )
 {
 	// defaults
 	fullscreen_display = -1;
+#ifdef VITA
+	set_scaler_by_name("None");
+#else
 	set_scaler_by_name("Scale2x");
-	
+#endif
 	config_t *config = &opentyrian_config;
 	
 	FILE *file = dir_fopen_warn(get_user_directory(), "opentyrian.cfg", "r");

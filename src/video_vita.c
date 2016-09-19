@@ -21,15 +21,15 @@
 #include "palette.h"
 #include "video.h"
 #include "video_scale.h"
-
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <psp2/power.h>
 #include <vita2d.h>
+#include "keyboard_vita.h"
+
 #define SCR_W 960
 #define SCR_H 544
 
@@ -40,6 +40,15 @@ const char* scaling_mode_names[ScalingMode_MAX] = {
 	"Fit",
 	"FullScreen",
 };
+
+uint scaler;
+
+const struct Scalers scalers[] =
+{
+	{ 1 * vga_width, 1 * vga_height, NULL,      NULL,      "None" },
+	{ 2 * vga_width, 2 * vga_height, NULL,      NULL,      "2x" }
+};
+const uint scalers_count = COUNTOF(scalers);
 
 int fullscreen_display;
 ScalingMode scaling_mode = SCALE_FIT;
@@ -54,9 +63,6 @@ SDL_Window* main_window; // "used" by keyboard.c
 void show_splash();
 vita2d_texture *vitaTexture;
 Uint8 *vitaData;
-#ifdef DIRECTDRAW
-void *sdlpixels;
-#endif
 
 // fps
 double  t, t0, fps;
@@ -124,24 +130,16 @@ void init_video( void )
 	VGAScreen = VGAScreenSeg = SDL_CreateRGBSurface(0, vga_width, vga_height, 8, 0, 0, 0, 0);
 	VGAScreen2 = SDL_CreateRGBSurface(0, vga_width, vga_height, 8, 0, 0, 0, 0);
 	game_screen = SDL_CreateRGBSurface(0, vga_width, vga_height, 8, 0, 0, 0, 0);
-	scaler = 0;
 
 	// get max speed :/
 	scePowerSetGpuClockFrequency(222);
 	scePowerSetArmClockFrequency(444);
+
 	// use vita texture for rendering
 	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
-#ifdef DIRECTDRAW
-	vitaTexture = vita2d_create_empty_texture_format(320, 200, SCE_GXM_TEXTURE_FORMAT_U8_RRRR);
-#else
 	vitaTexture = vita2d_create_empty_texture_format(320, 200, SCE_GXM_TEXTURE_FORMAT_R5G6B5);
-#endif
 	vitaData = (Uint8 *)vita2d_texture_get_datap(vitaTexture);
-#ifdef DIRECTDRAW
-	sdlpixels = VGAScreenSeg->pixels;
-	VGAScreenSeg->pixels = (void*)vitaData;
-#endif
 	
 	// The game code writes to surface->pixels directly without locking, so make sure that we
 	// indeed created software surfaces that support this.
@@ -151,24 +149,13 @@ void init_video( void )
 
 	JE_clr256(VGAScreen);
 
-#ifdef DIRECTDRAW
-	main_window_tex_format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB444);
-#else
 	main_window_tex_format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB565);
-#endif
 
 #ifdef VDEBUG
 	fpsinit();
 #endif
-
-	init_scaler(1);
 	
 	show_splash();
-}
-
-void JE_clr256( SDL_Surface * screen)
-{
-	//SDL_FillRect(screen, NULL, 0);
 }
 
 void JE_showVGA( void ) 
@@ -182,16 +169,34 @@ bool init_scaler( unsigned int new_scaler )
 	return true; 
 }
 
-bool set_scaling_mode_by_name( const char* name ) 
+bool set_scaling_mode_by_name( const char* name )
 {
-	return true; 
+	for (int i = 0; i < ScalingMode_MAX; ++i)
+	{
+		 if (strcmp(name, scaling_mode_names[i]) == 0)
+		 {
+			 scaling_mode = i;
+			 return true;
+		 }
+	}
+	return false;
+}
+
+void set_scaler_by_name( const char *name )
+{
+	for (uint i = 0; i < scalers_count; ++i)
+	{
+		if (strcmp(name, scalers[i].name) == 0)
+		{
+			scaler = i;
+			break;
+		}
+	}
 }
 
 void scale_and_flip( SDL_Surface *src_surface )
 {
-#ifndef DIRECTDRAW
 	c8_16(src_surface, vitaData);
-#endif
 
 	int x = 0, y = 0, w = 320, h = 200;
 	float sx = 1, sy = 1;
@@ -224,16 +229,13 @@ void scale_and_flip( SDL_Surface *src_surface )
 
 void deinit_video( void )
 {
-#ifdef DIRECTDRAW
-	VGAScreenSeg->pixels = sdlpixels;
-#endif
 	vita2d_free_texture(vitaTexture);
-	
 	SDL_FreeSurface(VGAScreenSeg);
 	SDL_FreeSurface(VGAScreen2);
 	SDL_FreeSurface(game_screen);
 }
 
+void JE_clr256( SDL_Surface * screen){}
 void video_on_win_resize() {}
 void toggle_fullscreen( void ) {}
 void reinit_fullscreen( int new_display ) {}
@@ -284,6 +286,4 @@ void show_splash() {
 		vita2d_end_drawing();
 		vita2d_swap_buffers();
 	}
-	
-	//vita2d_free_texture(splash);
 }

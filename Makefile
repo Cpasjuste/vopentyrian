@@ -13,7 +13,7 @@ PROJECT := vOpenTiryan
 LIBS = -lpsp2shell -lpthread -lSDL2 -lvita2d -lSceDisplay_stub -lSceGxm_stub \
 		-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub -lSceNetCtl_stub \
 		-lSceNet_stub -lScePower_stub -lSceKernel_stub -lSceCommonDialog_stub \
-		-lSceAudio_stub -lSceAppMgr_stub -lpng -lz -lm -lc
+		-lSceAppUtil_stub -lSceAudio_stub -lSceAppMgr_stub -lpng -lz -lm -lc
 
 
 CFLAGS  = -Wl,-q -Wall -O3 -MMD -pedantic -Wall -Wextra \
@@ -21,17 +21,18 @@ CFLAGS  = -Wl,-q -Wall -O3 -MMD -pedantic -Wall -Wextra \
 			-ftree-vectorize -mword-relocations -fomit-frame-pointer -ffast-math \
 			-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard \
 			-DVITA -DTARGET_UNIX -std=c99 -I./src -I$(VITASDK)/arm-vita-eabi/include
-#-DVDEBUG 
+#-DVDEBUG
 
 OBJS := src/mainint.o src/arg_parse.o src/backgrnd.o src/destruct.o src/fonthand.o \
 	src/sizebuf.o src/musmast.o src/loudness.o src/shots.o src/joystick.o src/game_menu.o \
-	src/pcxload.o src/pcxmast.o src/video_scale.o src/lvlmast.o src/player.o src/keyboard.o \
-	src/picload.o src/opl.o src/nortvars.o src/episodes.o src/animlib.o src/video_vita.o src/sndmast.o \
+	src/pcxload.o src/pcxmast.o src/lvlmast.o src/player.o src/keyboard.o \
+	src/picload.o src/opl.o src/nortvars.o src/episodes.o src/animlib.o src/sndmast.o \
 	src/params.o src/scroller.o src/font.o src/vga_palette.o src/sprite.o src/file.o src/lvllib.o \
 	src/config.o src/helptext.o src/network.o src/xmas.o src/starlib.o src/opentyr.o src/editship.o \
-	src/jukebox.o src/setup.o src/std_support.o src/mouse.o src/video_scale_hqNx.o src/nortsong.o \
+	src/jukebox.o src/setup.o src/std_support.o src/mouse.o src/nortsong.o \
 	src/mtrand.o src/config_file.o src/lds_play.o src/menus.o src/vga256d.o src/tyrian2.o src/palette.o \
-	src/varz.o
+	src/varz.o \
+	src/video_vita.o src/keyboard_vita.o
 
 all: package
 
