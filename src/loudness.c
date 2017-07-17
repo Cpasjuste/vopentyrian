@@ -45,7 +45,7 @@ Uint8 channel_vol[SFX_CHANNELS];
 
 int sound_init_state = false;
 #ifdef VITA
-int freq = 48000;
+int freq = 44100;
 #else
 int freq = 11025 * OUTPUT_QUALITY;
 #endif
