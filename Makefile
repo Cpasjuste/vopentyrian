@@ -7,7 +7,7 @@ CXX := arm-vita-eabi-g++
 STRIP := arm-vita-eabi-strip
 
 PROJECT_TITLE := vOpenTyrian
-PROJECT_TITLEID := VOPTYRIAN
+PROJECT_TITLEID := VOPTIRYAN
 PROJECT := vOpenTyrian
 
 LIBS = -lpsp2shell -lpthread -lSDL2 -lvita2d -lSceDisplay_stub -lSceGxm_stub \
