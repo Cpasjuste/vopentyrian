@@ -343,6 +343,12 @@ void reset_joystick_assignments( int j )
 				joystick[j].assignment[a][1].x_axis = (a == 1 || a == 3);
 				joystick[j].assignment[a][1].negative_axis = (a == 0 || a == 3);
 			}
+#ifdef VITA
+			static const char remap[4] = { 8, 9, 6, 7 }; // maps to correct button (UP, RIGHT, DOWN, LEFT)
+
+			joystick[j].assignment[a][1].type = BUTTON;
+			joystick[j].assignment[a][1].num = remap[a];
+#endif
 		}
 #ifndef VITA
 		else
